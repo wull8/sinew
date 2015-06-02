@@ -1,0 +1,66 @@
+#include "Catalog.h"
+#include <stdio.h>
+#include <malloc.h>
+#include <string.h>
+#include "Global.h"
+
+void catalog_append(catalog_record ** head, char * Key_name, char * Key_Type) {
+  typedef catalog_record node;		   
+  
+  if((*head) == NULL) {
+    (*head) = (node *)malloc(sizeof(node));
+    (*head)->_id = 1;
+    strcpy((*head)->Key_name, Key_name);
+    strcpy((*head)->Key_Type, Key_Type);
+    (*head)->count = 1;
+    return;
+  }
+
+  if(catalog_inc(head, Key_name)) {
+    return;
+  }
+  
+  node * positioner = *head;
+  while(positioner->next != NULL) {
+    positioner = positioner->next;
+  }
+  positioner->next = (node *)malloc(sizeof(node));
+  positioner->next->_id = positioner->_id + 1;
+  strcpy(positioner->next->Key_name, Key_name);
+  strcpy(positioner->next->Key_Type, Key_Type);
+  positioner->next->count = 1;
+  return;
+}
+
+bool catalog_inc(catalog_record ** head, char * Key_name) {
+  typedef catalog_record node;
+  node * positioner = *head;
+  while(positioner != NULL && strcmp(positioner->Key_name, Key_name) != 0) {
+    positioner = positioner->next;
+  }
+
+  if(positioner == NULL) {
+    return 0;
+  }
+
+  positioner->count++;
+  return 1;
+}
+
+void catalog_traversal(catalog_record * head) {
+  typedef catalog_record node;
+  node * positioner = head;
+  if(head == NULL) {
+    return;
+  }
+
+  printf("_id\tKey_name\tKey_type\tcount\n");
+
+  while(positioner != NULL) {
+    printf("%d\t%s\t\t%s\t\t%d\n", positioner->_id, positioner->Key_name,
+	   positioner->Key_Type, positioner->count);
+    positioner = positioner->next;
+  }
+  
+}
+

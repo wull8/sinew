@@ -1,0 +1,16 @@
+#include <stdio.h>
+
+typedef struct catalog_record {
+  int _id;
+  char * Key_name;
+  char * Key_Type;
+  int count;
+  struct catalog_record * lchild;
+  struct catalog_record * rchild;
+} catalog_record;
+
+void catalog_append(catalog_record * root, catalog_record rec);
+void catalog_delete(catalog_record * root, catalog_record rec);
+void catalog_inc();
+void catalog_dec();
+

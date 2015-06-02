@@ -1,0 +1,8 @@
+
+#define PAGE_SIZE 8000
+#define DATA_FILE ./DATA.bin
+
+#ifndef BOOLEAN
+#define BOOLEAN
+typedef enum {True = 1, False = 0} bool;
+#endif
