@@ -1,6 +1,0 @@
-
-
-BOOLEAN Insert(char * file);
-BOOLEAN CheckoutCatolog();
-BOOLEAN Find(A,B);
-
