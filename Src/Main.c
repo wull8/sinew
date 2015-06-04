@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "Catalog.h"
 
 /* commands for the project
    -h : help
@@ -20,6 +21,20 @@ void help() {
   printf("-cc : checkout the catalog\n");
   printf("-f <A> = <B> : find <key,value>\n");
   printf("\n");
+}
+
+void CheckoutCatolog() {
+  catalog_record * CATALOG = NULL;
+  if(!catalog_build(&CATALOG)) {
+    printf("CheckoutCatolog : CATALOG LOADED FAILED!\n");
+    return;
+  }
+
+  if(CATALOG == NULL) {
+    printf("CheckoutCatolog : EMPTY!\n");
+    return;
+  }
+  catalog_traversal(CATALOG);
 }
 
 int main(int argc, char * argv[]) {
@@ -47,8 +62,7 @@ int main(int argc, char * argv[]) {
     //Insert(file);
     exit(EXIT_SUCCESS);
   } else if(!strcmp(Argument, command[2])) {
-    printf("checkout catolog\n");
-    //CheckoutCatolog();
+    CheckoutCatolog();
     exit(EXIT_SUCCESS);
   } else if(!strcmp(Argument, command[3])) {
     const char * A = argv[2];

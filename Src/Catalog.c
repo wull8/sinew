@@ -4,7 +4,7 @@
 #include <string.h>
 #include "Global.h"
 
-bool catalog_inc(catalog_record ** head, char * Key_name, char * Key_Type) {
+int catalog_inc(catalog_record ** head, char * Key_name, char * Key_Type) {
   typedef catalog_record node;
   node * positioner = *head;
   printf("%s %s\n", positioner->Key_name, positioner->Key_Type);
@@ -16,15 +16,15 @@ bool catalog_inc(catalog_record ** head, char * Key_name, char * Key_Type) {
   }
 
   if(positioner == NULL) {
-    return false;
+    return -1;
   }
 
   positioner->count++;
   positioner->dirty = true;
-  return true;
+  return positioner->_id;
 }
 
-void catalog_append(catalog_record ** head, int _id, char * Key_name,
+int catalog_append(catalog_record ** head, int _id, char * Key_name,
 		    char * Key_Type, int count, bool dirty) {
   typedef catalog_record node;		   
   
@@ -36,13 +36,14 @@ void catalog_append(catalog_record ** head, int _id, char * Key_name,
     (*head)->count = count;
     (*head)->dirty = dirty;
     (*head)->next = NULL;
-    return;
+    return -1;
   }
 
-  if(catalog_inc(head, Key_name, Key_Type)) {
-    return;
+  int temp = catalog_inc(head, Key_name, Key_Type);
+  if(temp != -1) {
+    return temp;
   }
-  
+    
   node * positioner = *head;
   while(positioner->next != NULL) {
     positioner = positioner->next;
@@ -54,7 +55,7 @@ void catalog_append(catalog_record ** head, int _id, char * Key_name,
   positioner->next->count = count;
   positioner->next->dirty = dirty;
   positioner->next->next = NULL;
-  return;
+  return positioner->next->_id;
 }
 
 void catalog_traversal(catalog_record * head) {
@@ -101,6 +102,7 @@ bool catalog_build(catalog_record ** CATALOG) {
   }
   
   fclose(F_Catalog);
+  return true;
 }
 
 bool catalog_save(catalog_record * CATALOG) {
@@ -121,3 +123,53 @@ bool catalog_save(catalog_record * CATALOG) {
   return true;
 }
 
+bool catalog_index_build(catalog_record * CATALOG, catalog_record * CATALOG_INDEX[]) {
+  if (CATALOG_INDEX != NULL) {
+    return false;
+  } else if (CATALOG == NULL) {
+    return false;
+  }
+
+  catalog_record * positioner = CATALOG;
+
+  int count = 0;
+
+  while(positioner != NULL) {
+    count++;
+  }
+
+  CATALOG_INDEX = (catalog_record **)malloc(sizeof(catalog_record *) * (count + 1));
+
+  if(CATALOG_INDEX == NULL) {
+    return false;
+  }
+
+  int i;
+  
+  for(positioner = CATALOG, i = 0; positioner != NULL; positioner = positioner->next, i++) {
+    CATALOG_INDEX[i] = positioner;
+  }
+  
+  return true;
+}
+
+bool catalog_find(int _id, catalog_record * index[],
+		  catalog_record ** destination) {
+  if(index == NULL) {
+    return false;
+  }
+
+  int length = sizeof(index)/sizeof(index[0]);
+
+  if(_id-1 > length) {
+    return false;
+  }
+  
+  if(index[_id-1]->_id == _id) {
+    (*destination) = index[_id-1];
+      return true;
+  }
+
+  destination = NULL;
+  return false;
+}
