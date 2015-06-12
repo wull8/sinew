@@ -8,6 +8,6 @@ typedef struct json_parser {
   json_type type;
   struct json_parser * next;
 } json_parser;
-extern json_parser * ParseJson(char * JsonStr);
-extern char * RestoreJson(char * datas);
+extern json_parser * ParseJson(char * JsonStr, int * len);
+extern void DeleteJson(json_parser * head);
 #endif
