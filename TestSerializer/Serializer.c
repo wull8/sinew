@@ -4,11 +4,11 @@
 #include "Global.h"
 #include "Catalog.h"
 
-// assume that all jsons have only one nested object or arrays of one degree
+// assume that all jsons have only one array of one degree
 // assume that all arrays are string arrays
 
-int ArraySerializer(char * json, int start, int end, int * max_id, catalog_record * CATALOG);
-int ObjectSerializer(char * json, int start, int end, int * max_id, catalog_record * CATALOG);
+int ArraySerializer(char * json, int start, int end, int * max_id, catalog_record ** CATALOG);
+int ObjectSerializer(char * json, int start, int end, int * max_id, catalog_record ** CATALOG);
 
 const char * data_type = {
   "int32",
@@ -42,7 +42,7 @@ bool parseBool(char * json, int start) {
   return json[start] == 't' || json[start] == 'T' ? 1 : 0;
 }
 
-bool Serializer(char * json, json_parser * first, int json_len, int * max_id, catalog_record ** CATALOG) {
+bool JsonSerializer(char * json, json_parser * first, int json_len, int * max_id, catalog_record ** CATALOG) {
   if(json == NULL || first == NULL) {
     return false;
   }
@@ -98,4 +98,80 @@ bool Serializer(char * json, json_parser * first, int json_len, int * max_id, ca
   write(&head2_data);
 }
 
+char** parseStringArray(char * json, int start, int end, int * count, int begin[1000], int finish[1000]) {
+  
+  int positioner = start;
+  *count = 0;
+  
+  for(;positioner <= end; positioner++) {
+    if(json[positioner] == '"') {
+      begin[*count] = positioner+1;
+      while(json[++positioner] != '"')
+	;
+      finish[*count] = positioner-1;
+      positioner++;
+      *count++;
+    }
+  }
 
+  char ** strings = (char **)malloc(sizeof(char *) * (*count));
+
+  int i, j;
+  for(i = 0; i < *count; i++) {
+    if(begin[i] == finish[i]) {
+      strings[i] = NULL;
+      continue;
+    }
+    strings[i] = malloc(sizeof(char) * (finish[i] - begin[i] + 1));
+    for(j = begin[i]; j <= finish[i]; j++) {
+      string[i][j] = json[j];
+    }
+  }
+
+  return strings;
+}
+
+int ArraySerializer(char * json, int start, int end, int * max_id, catalog_record ** CATALOG) {
+  char ** strings;
+  int string_num;
+  int begin[1000], finish[1000];
+  strings = parseStringArray(json, start, end, string_num, begin, finish);
+  head2 head2_data;
+  (*max_id)++;
+  head2_data.tuple_id = *max_id;
+  head2_data.attr_num = string_num;
+
+  head2_data.data_unit_array = (data_unit *)malloc(sizeof(data_unit) * (string_num + 1));
+  data_unit * data_units = head2_data.data_unit_array;
+
+  int i;
+  int offset = 0;
+  for(i = 0; i < string_num; i++) {
+    data_units[i].data_type = 2;
+    data_units[i].attr_id = -1;
+    data_units[i].data.STRING_DATA = strings[i];
+    data_units[i].offset = offset;
+    offset += finish[i] -begin[i];
+  }
+
+  data_units[string_num].offset = offset;
+
+  return *max_id;
+}
+
+int ObjectSerializer(char * json, int start, int end, int * max_id, catalog_record ** CATALOG) {
+  char * nested_json;
+  nested_json = (char *)malloc(sizeof(char) * (end - start + 1));
+  int i, j;
+  for(i = start, j = 0; i <= end; i++, j++) {
+    nested_json[j] = json[i];
+  }
+  json_parser * nested_json_parser;
+  int nested_json_len;
+  nested_json_parser = ParseJson(nested_json, nested_json_len);
+  JsonSerializer(nested_json, nested_json_parser, nested_json_len, max_id,CATALOG);
+}
+
+void write(head2 * Serializer) {
+
+}

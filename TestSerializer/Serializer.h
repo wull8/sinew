@@ -23,5 +23,5 @@ typedef struct data_unit {
   data_type dtype;
 } data_unit;
 
-bool Serializer(char * json, json_parser * first, int json_len);
+bool JsonSerializer(char * json, json_parser * first, int json_len);
 #endif
