@@ -173,5 +173,13 @@ int ObjectSerializer(char * json, int start, int end, int * max_id, catalog_reco
 }
 
 void write(head2 * Serializer) {
+  static char * IOBUFFER[PAGE_SIZE];
+  file = fopen(DATA_FILE, "wb");
+  if (setvbuf(file, IOBUFFER, _IOFBF, PAGE_SIZE) != 0) {
+    printf("failed to set up buffer for input file\n");
+  } else {
+    printf("buffer set up for input file\n"); 
+  }
 
+  fclose(file);
 }
