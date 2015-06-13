@@ -1,5 +1,5 @@
 main:main.c Global Catalog Json Serializer
-	gcc main.c Global Catalog Json -o test -g
+	gcc main.c -o test -g
 Global:Global.h
 	gcc Global.h -c
 Catalog:Catalog.h Catalog.c

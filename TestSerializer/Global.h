@@ -1,7 +1,7 @@
 
 #ifndef CONSTS
 #define CONSTS
-#define PAGE_SIZE 8000;
+#define PAGE_SIZE 8000
 #define DATA_FILE "./DATA.bin"
 #define CATALOG_FILE "./CATALOG.txt"
 #endif
