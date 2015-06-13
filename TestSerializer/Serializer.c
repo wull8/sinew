@@ -42,7 +42,12 @@ bool parseBool(char * json, int start) {
   return json[start] == 't' || json[start] == 'T' ? 1 : 0;
 }
 
-bool JsonSerializer(char * json, json_parser * first, int json_len, int * max_id, catalog_record ** CATALOG) {
+int cmp( const void *a ,const void *b){
+  return (*(data_unit *)a).attr_id > (*(data_unit *)b).attr_id ? 1 : -1;
+}
+
+bool JsonSerializer(char * json, json_parser * first, int json_len,
+		    int * max_id, catalog_record ** CATALOG, FILE * file) {
   if(json == NULL || first == NULL) {
     return false;
   }
@@ -80,11 +85,11 @@ bool JsonSerializer(char * json, json_parser * first, int json_len, int * max_id
 		  data_units[i].data.STRING_DATA);
       break;
     case 3 :
-      data_unit[i].data.ARRAY_DATA = ArraySerializer(json, json_parser_positioner->start,
+      data_units[i].data.ARRAY_DATA = ArraySerializer(json, json_parser_positioner->start,
 						     json_parser_positioner->end, max_id, CATALOG);
       break;
     case 4 :
-      data_unit[i].data.OBJECT_DAT = ObjectSerializer(json, json_parser_positioner->start,
+      data_units[i].data.OBJECT_DAT = ObjectSerializer(json, json_parser_positioner->start,
 						       json_parser_positioner->end, max_id, CATALOG);
       break;
     default:
@@ -94,8 +99,11 @@ bool JsonSerializer(char * json, json_parser * first, int json_len, int * max_id
     json_parser_positioner = json_parser_positioner->next;
   }
 
+  qsort(data_units, json_len / 2, sizeof(data_unit), cmp);
+  
+  head2_data.data_unit_array = data_units;
 
-  write(&head2_data);
+  write(&head2_data, file);
 }
 
 char** parseStringArray(char * json, int start, int end, int * count, int begin[1000], int finish[1000]) {
@@ -131,7 +139,7 @@ char** parseStringArray(char * json, int start, int end, int * count, int begin[
   return strings;
 }
 
-int ArraySerializer(char * json, int start, int end, int * max_id, catalog_record ** CATALOG) {
+int ArraySerializer(char * json, int start, int end, int * max_id, catalog_record ** CATALOG, FILE * file) {
   char ** strings;
   int string_num;
   int begin[1000], finish[1000];
@@ -156,6 +164,8 @@ int ArraySerializer(char * json, int start, int end, int * max_id, catalog_recor
 
   data_units[string_num].offset = offset;
 
+  write(&head2_data, file);
+  
   return *max_id;
 }
 
@@ -172,14 +182,40 @@ int ObjectSerializer(char * json, int start, int end, int * max_id, catalog_reco
   JsonSerializer(nested_json, nested_json_parser, nested_json_len, max_id,CATALOG);
 }
 
-void write(head2 * Serializer) {
+void write(head2 * Serializer, FILE * file) {
   static char * IOBUFFER[PAGE_SIZE];
-  file = fopen(DATA_FILE, "wb");
+
+  // 8k buffer
   if (setvbuf(file, IOBUFFER, _IOFBF, PAGE_SIZE) != 0) {
     printf("failed to set up buffer for input file\n");
   } else {
     printf("buffer set up for input file\n"); 
   }
 
-  fclose(file);
+  fwrite(&(Serializer->tuple_id), sizeof(int), 1, file);
+  fwrite(&(Serializer->attr_num), sizeof(int), 1, file);
+
+  int i;
+  int len = Serializer->attr_num + 1;
+  for(i = 0; i < len; i++) {
+    fwrite(&(Serializer->data_units[i].attr_id), sizeof(int), 1, file);
+  }
+
+  for(i = 0; i < len + 1; i++) {
+    fwrite(&(Serializer->data_units[i].offset), sizeof(int), 1, file);
+  }
+
+  for(i = 0; i < len; i++) {
+    switch(Serializer->data_units[i].dtype) {
+    case 0 : case 3 : case 4 :
+      fwrite(&(Serializer->data_units[i].data), sizeof(int), 1, file);
+      break;
+    case 1 :
+      fwrite(&(Serializer->data_units[i].data), sizeof(bool), 1, file);
+      break;
+    case 2 :
+      fwrite(&(Serializer->data_units[i].data), sizeof(char), strlen(Serializer->data_units[i].data), file);
+      break;
+    }
+  }
 }
