@@ -5,7 +5,7 @@
 
 json_parser * ParseJson(char * JsonStr, int * len) {
 
-  *len = 0;
+  (*len) = 0;
   
   if(JsonStr == NULL)
     return NULL;
@@ -25,7 +25,8 @@ json_parser * ParseJson(char * JsonStr, int * len) {
     head->end = i;
     head->next = NULL;
     head->type = 0;
-    *len++;
+    head->dtype = 2;
+    (*len)++;
   } else {
     return NULL;
   }
@@ -55,15 +56,30 @@ json_parser * ParseJson(char * JsonStr, int * len) {
 	while(JsonStr[i] != ',' && JsonStr[i] != '}')
 	  i++;
       }
+
+      if(JsonStr[temp->start] >= '0' && JsonStr[temp->start] <= '9') {
+	temp->dtype = 0;
+      } else if (JsonStr[temp->start] == '"') {
+	temp->dtype = 2;
+      } else if (JsonStr[temp->start] == '[') {
+	temp->dtype = 3;
+      } else if (JsonStr[temp->start] == '{') {
+	temp->dtype = 4;
+      } else if (JsonStr[temp->start] == 't' || JsonStr[temp->start] == 'T'
+		 || JsonStr[temp->start] == 'f' || JsonStr[temp->start] == 'F') {
+	temp->dtype = 1;
+      } else {
+	temp->dtype = 5;
+      }
       
       temp->end = i - 1;
       temp->type = 1;
       temp->next = NULL;
       positioner->next = temp;
       positioner = temp;
+      
       i--;
-      *len++;
-      continue;
+      (*len)++;
     } else if(JsonStr[i] == ',') {
       i++;
       while(JsonStr[i] == ' ') {
@@ -72,6 +88,7 @@ json_parser * ParseJson(char * JsonStr, int * len) {
       
       temp = (json_parser *)malloc(sizeof(json_parser));
       temp->start = i;
+      temp->dtype = 2;
       while(JsonStr[i] != ':')
 	i++;
       temp->end = i - 1;
@@ -80,11 +97,9 @@ json_parser * ParseJson(char * JsonStr, int * len) {
       positioner->next = temp;
       positioner = temp;
       i--;
-      *len++
-      continue;
+      (*len)++;
     }
   }
-
   return head;
 }
 

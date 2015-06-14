@@ -49,15 +49,20 @@ bool catalog_build(catalog_record ** CATALOG);
   process: Read All the CATALOG list address into the INDEX for direct access
   output: An array(the index)
  */
-bool catalog_index_build(catalog_record * CATALOG,
-			 catalog_record * CATALOG_INDEX[]);
+catalog_record ** catalog_index_build(catalog_record * CATALOG);
 /*
   input: A Catalog id and an index
   process: Find the attr from the catalog 
   output: One catalog record or NULL(not found)
  */
-bool catalog_find(int _id,catalog_record * index[],
+bool catalog_find_by_id(int _id,catalog_record * index[],
 		  catalog_record ** destination);
+/*
+  input: catalog keyname and key type
+  process: find the id
+  output: an id
+ */
+bool catalog_find_by_key(catalog_record * CATALOG, int * id, char * Key_name, char * Key_Type);
 /*
   input: A Catalog list
   process: write it into the file

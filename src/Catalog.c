@@ -7,8 +7,6 @@
 int catalog_inc(catalog_record ** head, char * Key_name, char * Key_Type) {
   typedef catalog_record node;
   node * positioner = *head;
-  printf("%s %s\n", positioner->Key_name, positioner->Key_Type);
-  
   while(positioner != NULL) {
     if(strcmp(positioner->Key_name, Key_name) == 0 && strcmp(positioner->Key_Type, Key_Type) == 0)
       break;
@@ -36,7 +34,7 @@ int catalog_append(catalog_record ** head, int _id, char * Key_name,
     (*head)->count = count;
     (*head)->dirty = dirty;
     (*head)->next = NULL;
-    return -1;
+    return (*head)->_id;
   }
 
   int temp = catalog_inc(head, Key_name, Key_Type);
@@ -75,18 +73,18 @@ void catalog_traversal(catalog_record * head) {
   
 }
 
-bool catalog_update(catalog_record ** CATALOG, char * Key_name, char * Key_Type) {
+int catalog_update(catalog_record ** CATALOG, char * Key_name, char * Key_Type) {
   if(Key_name == NULL || Key_Type == NULL) {
     return false;
   }
 
-  catalog_append(CATALOG, -1, Key_name, Key_Type, 1, true);
+  int ret = catalog_append(CATALOG, -1, Key_name, Key_Type, 1, true);
 
   if(*CATALOG == NULL) {
     return false;
   }
 
-  return true;
+  return ret;
 }
 
 bool catalog_build(catalog_record ** CATALOG) {
@@ -123,11 +121,10 @@ bool catalog_save(catalog_record * CATALOG) {
   return true;
 }
 
-bool catalog_index_build(catalog_record * CATALOG, catalog_record * CATALOG_INDEX[]) {
-  if (CATALOG_INDEX != NULL) {
-    return false;
-  } else if (CATALOG == NULL) {
-    return false;
+catalog_record ** catalog_index_build(catalog_record * CATALOG) {
+
+  if (CATALOG == NULL) {
+    return NULL;
   }
 
   catalog_record * positioner = CATALOG;
@@ -136,12 +133,13 @@ bool catalog_index_build(catalog_record * CATALOG, catalog_record * CATALOG_INDE
 
   while(positioner != NULL) {
     count++;
+    positioner = positioner->next;
   }
 
-  CATALOG_INDEX = (catalog_record **)malloc(sizeof(catalog_record *) * (count + 1));
+  catalog_record ** CATALOG_INDEX = (catalog_record **)malloc(sizeof(catalog_record *) * (count + 1));
 
   if(CATALOG_INDEX == NULL) {
-    return false;
+    return NULL;
   }
 
   int i;
@@ -150,10 +148,10 @@ bool catalog_index_build(catalog_record * CATALOG, catalog_record * CATALOG_INDE
     CATALOG_INDEX[i] = positioner;
   }
   
-  return true;
+  return CATALOG_INDEX;
 }
 
-bool catalog_find(int _id, catalog_record * index[],
+bool catalog_find_by_id(int _id, catalog_record * index[],
 		  catalog_record ** destination) {
   if(index == NULL) {
     return false;
@@ -172,4 +170,26 @@ bool catalog_find(int _id, catalog_record * index[],
 
   destination = NULL;
   return false;
+}
+
+bool catalog_find_by_key(catalog_record * CATALOG, int * id, char * Key_name, char * Key_Type) {
+  if(CATALOG == NULL || Key_name == NULL || id == NULL || Key_Type == NULL) {
+    printf("NULL input @ bool catalog_find_by_key(catalog_record * CATALOG, int * id, char * Key_name, char * Key_Type)");
+    return;
+  }
+
+  catalog_record * positioner = CATALOG;
+
+  while(positioner != NULL) {
+    if(strcmp(positioner->Key_name, Key_name) == 0 && strcmp(positioner->Key_Type, Key_Type) == 0)
+      break;
+    positioner = positioner->next;
+  }
+  
+  if(positioner == NULL) {
+    return false;
+  }
+
+  *id = positioner->_id;
+  return true;
 }
