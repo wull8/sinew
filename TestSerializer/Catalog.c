@@ -7,8 +7,6 @@
 int catalog_inc(catalog_record ** head, char * Key_name, char * Key_Type) {
   typedef catalog_record node;
   node * positioner = *head;
-  printf("%s %s\n", positioner->Key_name, positioner->Key_Type);
-  
   while(positioner != NULL) {
     if(strcmp(positioner->Key_name, Key_name) == 0 && strcmp(positioner->Key_Type, Key_Type) == 0)
       break;
@@ -36,7 +34,7 @@ int catalog_append(catalog_record ** head, int _id, char * Key_name,
     (*head)->count = count;
     (*head)->dirty = dirty;
     (*head)->next = NULL;
-    return -1;
+    return (*head)->_id;
   }
 
   int temp = catalog_inc(head, Key_name, Key_Type);
@@ -75,18 +73,18 @@ void catalog_traversal(catalog_record * head) {
   
 }
 
-bool catalog_update(catalog_record ** CATALOG, char * Key_name, char * Key_Type) {
+int catalog_update(catalog_record ** CATALOG, char * Key_name, char * Key_Type) {
   if(Key_name == NULL || Key_Type == NULL) {
     return false;
   }
 
-  catalog_append(CATALOG, -1, Key_name, Key_Type, 1, true);
+  int ret = catalog_append(CATALOG, -1, Key_name, Key_Type, 1, true);
 
   if(*CATALOG == NULL) {
     return false;
   }
 
-  return true;
+  return ret;
 }
 
 bool catalog_build(catalog_record ** CATALOG) {

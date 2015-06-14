@@ -5,7 +5,7 @@
 
 json_parser * ParseJson(char * JsonStr, int * len) {
 
-  *len = 0;
+  (*len) = 0;
   
   if(JsonStr == NULL)
     return NULL;
@@ -26,7 +26,7 @@ json_parser * ParseJson(char * JsonStr, int * len) {
     head->next = NULL;
     head->type = 0;
     head->dtype = 2;
-    *len++;
+    (*len)++;
   } else {
     return NULL;
   }
@@ -79,8 +79,7 @@ json_parser * ParseJson(char * JsonStr, int * len) {
       positioner = temp;
       
       i--;
-      *len++;
-      continue;
+      (*len)++;
     } else if(JsonStr[i] == ',') {
       i++;
       while(JsonStr[i] == ' ') {
@@ -98,11 +97,9 @@ json_parser * ParseJson(char * JsonStr, int * len) {
       positioner->next = temp;
       positioner = temp;
       i--;
-      *len++;
-      continue;
+      (*len)++;
     }
   }
-
   return head;
 }
 
